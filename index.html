@@ -108,12 +108,13 @@ h1 {
 }
 
 .title-setting,
+.size-setting,
 .theme-setting {
   margin-bottom: 12px;
 }
 
 .title-input,
-.theme-select {
+.select-box {
   width: 100%;
   padding: 8px 12px;
   border-radius: 999px;
@@ -121,6 +122,7 @@ h1 {
   font-size: 16px;
   text-align: center;
   font-weight: bold;
+  background: #fffafd;
 }
 
 .input-wrapper {
@@ -201,13 +203,12 @@ button {
 
 .bingo {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
   gap: 4px;
 }
 
 .cell {
-  width: min(16vw, 16vh);
-  height: min(16vw, 16vh);
+  width: min(13vw, 13vh);
+  height: min(13vw, 13vh);
   background: linear-gradient(135deg, var(--main1), var(--main2));
   border-radius: 14px;
   border: 2px solid white;
@@ -219,9 +220,32 @@ button {
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 6px;
-  font-size: clamp(10px, 1vw, 16px);
+  padding: 3px;
+  font-size: clamp(9px, 1vw, 16px);
   font-weight: bold;
+}
+
+body.size-3 .cell {
+  width: min(22vw, 22vh);
+  height: min(22vw, 22vh);
+  font-size: clamp(14px, 1.5vw, 22px);
+}
+
+body.size-4 .cell {
+  width: min(17vw, 17vh);
+  height: min(17vw, 17vh);
+  font-size: clamp(12px, 1.2vw, 18px);
+}
+
+body.size-5 .cell {
+  width: min(13vw, 13vh);
+  height: min(13vw, 13vh);
+}
+
+body.size-6 .cell {
+  width: min(10.5vw, 10.5vh);
+  height: min(10.5vw, 10.5vh);
+  font-size: clamp(8px, 0.8vw, 13px);
 }
 
 .cell-number {
@@ -256,7 +280,7 @@ button {
 </style>
 </head>
 
-<body class="pink">
+<body class="pink size-5">
 <div class="container">
   <h1>オリジナルビンゴ</h1>
 
@@ -267,7 +291,17 @@ button {
         <input id="titleInput" class="title-input" value="オリジナル" />
       </div>
 
-      <p>ビンゴ内容（25個）</p>
+      <div class="size-setting">
+        <p>マス数</p>
+        <select id="sizeSelect" class="select-box">
+          <option value="3">9マス（3×3）</option>
+          <option value="4">16マス（4×4）</option>
+          <option value="5">25マス（5×5）</option>
+          <option value="6">36マス（6×6）</option>
+        </select>
+      </div>
+
+      <p>ビンゴ内容</p>
 
       <div class="input-wrapper">
         <div id="inputList" class="input-list"></div>
@@ -282,7 +316,7 @@ button {
 
         <div class="theme-setting">
           <p>カラーバリエーション</p>
-          <select id="themeSelect" class="theme-select">
+          <select id="themeSelect" class="select-box">
             <option value="pink">ピンク</option>
             <option value="blue">水色</option>
             <option value="green-theme">緑</option>
@@ -307,18 +341,22 @@ const inputList = document.getElementById("inputList");
 const titleInput = document.getElementById("titleInput");
 const bingoTitle = document.getElementById("bingoTitle");
 const themeSelect = document.getElementById("themeSelect");
+const sizeSelect = document.getElementById("sizeSelect");
 
-const defaultTexts = Array.from({ length: 25 }, (_, i) => `内容 ${i + 1}`);
+const defaultTexts = Array.from({ length: 36 }, (_, i) => `内容 ${i + 1}`);
 
 let savedTexts = JSON.parse(localStorage.getItem("bingoTextsArray")) || defaultTexts;
 let savedTitle = localStorage.getItem("bingoTitle") || "オリジナル";
 let savedTheme = localStorage.getItem("bingoTheme") || "pink";
+let savedSize = localStorage.getItem("bingoSize") || "5";
 
 titleInput.value = savedTitle;
 bingoTitle.textContent = savedTitle;
 themeSelect.value = savedTheme;
+sizeSelect.value = savedSize;
 
-document.body.classList.add(savedTheme);
+setTheme(savedTheme);
+setSize(savedSize);
 
 titleInput.addEventListener("input", () => {
   bingoTitle.textContent = titleInput.value;
@@ -329,15 +367,44 @@ themeSelect.addEventListener("change", () => {
   setTheme(themeSelect.value);
 });
 
+sizeSelect.addEventListener("change", () => {
+  setSize(sizeSelect.value);
+  createInputs();
+  createBingo();
+  resetOpen();
+});
+
 function setTheme(theme) {
-  document.body.classList.remove("pink","blue","green-theme","orange","purple","red");
+  document.body.classList.remove(
+    "pink",
+    "blue",
+    "green-theme",
+    "orange",
+    "purple",
+    "red"
+  );
+
   document.body.classList.add(theme);
   localStorage.setItem("bingoTheme", theme);
 }
 
+function setSize(size) {
+  document.body.classList.remove("size-3", "size-4", "size-5", "size-6");
+  document.body.classList.add(`size-${size}`);
+  localStorage.setItem("bingoSize", size);
+}
+
 function createInputs() {
   inputList.innerHTML = "";
-  for (let i = 0; i < 25; i++) {
+
+  const size = Number(sizeSelect.value);
+  const total = size * size;
+
+  while (savedTexts.length < total) {
+    savedTexts.push(`内容 ${savedTexts.length + 1}`);
+  }
+
+  for (let i = 0; i < total; i++) {
     const row = document.createElement("div");
     row.className = "input-row";
 
@@ -357,15 +424,28 @@ function createInputs() {
 }
 
 function saveInputs() {
-  const texts = [...document.querySelectorAll(".text-item")].map(v => v.value);
-  localStorage.setItem("bingoTextsArray", JSON.stringify(texts));
+  const size = Number(sizeSelect.value);
+  const total = size * size;
+
+  const currentInputs = [...document.querySelectorAll(".text-item")].map(v => v.value);
+
+  for (let i = 0; i < total; i++) {
+    savedTexts[i] = currentInputs[i] || "";
+  }
+
+  localStorage.setItem("bingoTextsArray", JSON.stringify(savedTexts));
 }
 
 function createBingo() {
   saveInputs();
   bingo.innerHTML = "";
 
-  const texts = [...document.querySelectorAll(".text-item")].map(v => v.value);
+  const size = Number(sizeSelect.value);
+  const total = size * size;
+
+  bingo.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+
+  const texts = savedTexts.slice(0, total);
 
   texts.forEach((text, index) => {
     const cell = document.createElement("div");
@@ -393,7 +473,9 @@ function createBingo() {
 }
 
 function saveOpenState() {
-  const state = [...document.querySelectorAll(".cell")].map(c => c.classList.contains("open"));
+  const state = [...document.querySelectorAll(".cell")]
+    .map(c => c.classList.contains("open"));
+
   localStorage.setItem("bingoOpenState", JSON.stringify(state));
 }
 
