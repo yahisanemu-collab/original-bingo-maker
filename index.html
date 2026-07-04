@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>オリジナルビンゴ</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  --main1: #ff9fca;
+  --main2: #caa7ff;
+  --border: #ffc6df;
+  --title: #ff6fae;
+
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
+  background: linear-gradient(135deg, #fff0f7, #f7eaff);
+  color: #5a3b4c;
+}
+
+body.green {
+  background: #00ff00;
+}
+
+body.pink {
+  --main1: #ff9fca;
+  --main2: #caa7ff;
+  --border: #ffc6df;
+  --title: #ff6fae;
+}
+
+body.blue {
+  --main1: #8fdcff;
+  --main2: #9fb8ff;
+  --border: #bfe8ff;
+  --title: #4fa3ff;
+}
+
+body.green-theme {
+  --main1: #8fffc2;
+  --main2: #7be28a;
+  --border: #b8ffd0;
+  --title: #3dbb65;
+}
+
+body.orange {
+  --main1: #ffca8f;
+  --main2: #ff9b6d;
+  --border: #ffd5b5;
+  --title: #ff874d;
+}
+
+body.purple {
+  --main1: #d49fff;
+  --main2: #a98fff;
+  --border: #e2c2ff;
+  --title: #9a52ff;
+}
+
+body.red {
+  --main1: #ff9999;
+  --main2: #ff6f8f;
+  --border: #ffc1c1;
+  --title: #ff4b5c;
+}
+
+.container {
+  height: 100vh;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  margin: 0 0 10px;
+  text-align: center;
+  color: var(--title);
+  font-size: clamp(20px, 2vw, 32px);
+}
+
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 8px;
+  min-height: 0;
+}
+
+.settings {
+  background: rgba(255,255,255,0.92);
+  border-radius: 20px;
+  padding: 14px;
+  border: 3px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.settings p {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.title-setting,
+.theme-setting {
+  margin-bottom: 12px;
+}
+
+.title-input,
+.theme-select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  font-size: 16px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.input-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.input-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 6px;
+  align-items: center;
+}
+
+.input-number {
+  text-align: center;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--title);
+}
+
+.text-item {
+  width: 100%;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  padding: 6px 8px;
+  font-size: 12px;
+  background: #fffafd;
+}
+
+.buttons {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--title);
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.bottom-controls {
+  margin-top: 16px;
+}
+
+.bingo-area {
+  background: rgba(255,255,255,0.7);
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.bingo-title {
+  margin-bottom: 8px;
+  font-size: clamp(20px, 2vw, 34px);
+  font-weight: bold;
+  color: var(--title);
+}
+
+.bingo {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.cell {
+  width: min(16vw, 16vh);
+  height: min(16vw, 16vh);
+  background: linear-gradient(135deg, var(--main1), var(--main2));
+  border-radius: 14px;
+  border: 2px solid white;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 6px;
+  font-size: clamp(10px, 1vw, 16px);
+  font-weight: bold;
+}
+
+.cell-number {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-size: 11px;
+  color: white;
+  background: rgba(255, 105, 180, 0.8);
+  border-radius: 999px;
+  padding: 2px 6px;
+}
+
+.cell::before {
+  content: "♡";
+  color: white;
+  font-size: clamp(20px, 3vw, 40px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.cell.open {
+  background: #fffafd;
+  color: #5a3b4c;
+}
+
+.cell.open::before {
+  content: "";
+}
+</style>
+</head>
+
+<body class="pink">
+<div class="container">
+  <h1>オリジナルビンゴ</h1>
+
+  <div class="main">
+    <div class="settings">
+      <div class="title-setting">
+        <p>タイトル</p>
+        <input id="titleInput" class="title-input" value="オリジナル" />
+      </div>
+
+      <p>ビンゴ内容（25個）</p>
+
+      <div class="input-wrapper">
+        <div id="inputList" class="input-list"></div>
+      </div>
+
+      <div class="bottom-controls">
+        <div class="buttons">
+          <button onclick="createBingo()">更新</button>
+          <button onclick="resetOpen()">リセット</button>
+          <button onclick="toggleGreenBack()">グリーンバック</button>
+        </div>
+
+        <div class="theme-setting">
+          <p>カラーバリエーション</p>
+          <select id="themeSelect" class="theme-select">
+            <option value="pink">ピンク</option>
+            <option value="blue">水色</option>
+            <option value="green-theme">緑</option>
+            <option value="orange">オレンジ</option>
+            <option value="purple">紫</option>
+            <option value="red">赤</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="bingo-area">
+      <div id="bingoTitle" class="bingo-title">オリジナル</div>
+      <div id="bingo" class="bingo"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const bingo = document.getElementById("bingo");
+const inputList = document.getElementById("inputList");
+const titleInput = document.getElementById("titleInput");
+const bingoTitle = document.getElementById("bingoTitle");
+const themeSelect = document.getElementById("themeSelect");
+
+const defaultTexts = Array.from({ length: 25 }, (_, i) => `内容 ${i + 1}`);
+
+let savedTexts = JSON.parse(localStorage.getItem("bingoTextsArray")) || defaultTexts;
+let savedTitle = localStorage.getItem("bingoTitle") || "オリジナル";
+let savedTheme = localStorage.getItem("bingoTheme") || "pink";
+
+titleInput.value = savedTitle;
+bingoTitle.textContent = savedTitle;
+themeSelect.value = savedTheme;
+
+document.body.classList.add(savedTheme);
+
+titleInput.addEventListener("input", () => {
+  bingoTitle.textContent = titleInput.value;
+  localStorage.setItem("bingoTitle", titleInput.value);
+});
+
+themeSelect.addEventListener("change", () => {
+  setTheme(themeSelect.value);
+});
+
+function setTheme(theme) {
+  document.body.classList.remove("pink","blue","green-theme","orange","purple","red");
+  document.body.classList.add(theme);
+  localStorage.setItem("bingoTheme", theme);
+}
+
+function createInputs() {
+  inputList.innerHTML = "";
+  for (let i = 0; i < 25; i++) {
+    const row = document.createElement("div");
+    row.className = "input-row";
+
+    const num = document.createElement("div");
+    num.className = "input-number";
+    num.textContent = i + 1;
+
+    const input = document.createElement("input");
+    input.className = "text-item";
+    input.value = savedTexts[i] || "";
+    input.addEventListener("input", saveInputs);
+
+    row.appendChild(num);
+    row.appendChild(input);
+    inputList.appendChild(row);
+  }
+}
+
+function saveInputs() {
+  const texts = [...document.querySelectorAll(".text-item")].map(v => v.value);
+  localStorage.setItem("bingoTextsArray", JSON.stringify(texts));
+}
+
+function createBingo() {
+  saveInputs();
+  bingo.innerHTML = "";
+
+  const texts = [...document.querySelectorAll(".text-item")].map(v => v.value);
+
+  texts.forEach((text, index) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+
+    const number = document.createElement("div");
+    number.className = "cell-number";
+    number.textContent = index + 1;
+
+    const content = document.createElement("div");
+    content.textContent = text;
+
+    cell.appendChild(number);
+    cell.appendChild(content);
+
+    cell.onclick = () => {
+      cell.classList.toggle("open");
+      saveOpenState();
+    };
+
+    bingo.appendChild(cell);
+  });
+
+  loadOpenState();
+}
+
+function saveOpenState() {
+  const state = [...document.querySelectorAll(".cell")].map(c => c.classList.contains("open"));
+  localStorage.setItem("bingoOpenState", JSON.stringify(state));
+}
+
+function loadOpenState() {
+  const saved = JSON.parse(localStorage.getItem("bingoOpenState"));
+  if (!saved) return;
+
+  document.querySelectorAll(".cell").forEach((cell, i) => {
+    if (saved[i]) cell.classList.add("open");
+  });
+}
+
+function resetOpen() {
+  document.querySelectorAll(".cell").forEach(c => c.classList.remove("open"));
+  localStorage.removeItem("bingoOpenState");
+}
+
+function toggleGreenBack() {
+  document.body.classList.toggle("green");
+}
+
+createInputs();
+createBingo();
+</script>
+</body>
+</html>
